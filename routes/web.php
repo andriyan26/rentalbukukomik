@@ -8,8 +8,14 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryBrowserController;
 use App\Http\Controllers\ComicBrowserController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ImageController;
 use App\Http\Controllers\RentalBookingController;
 use Illuminate\Support\Facades\Route;
+
+// Route untuk serve gambar (harus di atas route lainnya)
+Route::get('/storage/covers/{filename}', [ImageController::class, 'cover'])
+    ->where('filename', '[A-Za-z0-9._-]+')
+    ->name('image.cover');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/tentang-kami', [HomeController::class, 'about'])->name('about');

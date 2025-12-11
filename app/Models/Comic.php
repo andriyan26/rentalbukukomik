@@ -66,17 +66,25 @@ class Comic extends Model
         // Bersihkan path dari karakter yang tidak perlu
         $coverPath = ltrim($coverPath, '/');
         
-        // Cek di public/storage (lokasi yang benar untuk hosting)
+        // Ekstrak filename dari path (misal: covers/filename.jpg -> filename.jpg)
+        $filename = basename($coverPath);
+        
+        // Gunakan route Laravel untuk serve gambar (lebih reliable di hosting)
+        // Route ini akan handle akses ke file melalui Laravel
+        $routeUrl = route('image.cover', ['filename' => $filename]);
+        
+        // Verifikasi file exists sebelum return route URL
         $publicPath = public_path('storage/'.$coverPath);
-        if (file_exists($publicPath)) {
-            // Generate URL dengan asset() untuk memastikan menggunakan APP_URL yang benar
-            return asset('storage/'.$coverPath);
-        }
-
-        // Fallback: cek di storage/app/public (untuk backward compatibility)
         $storagePath = storage_path('app/public/'.$coverPath);
-        if (file_exists($storagePath)) {
-            return asset('storage/'.$coverPath);
+        
+        if (file_exists($publicPath) || file_exists($storagePath)) {
+            return $routeUrl;
+        }
+        
+        // Fallback: coba asset() jika route tidak bekerja
+        $assetUrl = asset('storage/'.$coverPath);
+        if (file_exists($publicPath)) {
+            return $assetUrl;
         }
 
         // Jika tidak ditemukan, return placeholder
