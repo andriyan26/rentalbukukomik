@@ -59,14 +59,18 @@ class Comic extends Model
             return $cover;
         }
 
-        if (Storage::disk('public')->exists($cover)) {
-            return asset('storage/'.$cover);
+        // Pastikan path menggunakan forward slash
+        $coverPath = str_replace('\\', '/', $cover);
+        
+        // Cek di public/storage (lokasi yang benar untuk hosting)
+        $publicPath = public_path('storage/'.$coverPath);
+        if (file_exists($publicPath)) {
+            return asset('storage/'.$coverPath);
         }
 
-        $publicPath = public_path($cover);
-
-        if (file_exists($publicPath)) {
-            return asset($cover);
+        // Fallback: cek menggunakan Storage disk
+        if (Storage::disk('public')->exists($coverPath)) {
+            return asset('storage/'.$coverPath);
         }
 
         return 'https://placehold.co/400x560/0f172a/ffffff?text=Komik';
