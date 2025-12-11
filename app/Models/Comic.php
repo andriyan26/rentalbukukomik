@@ -55,6 +55,7 @@ class Comic extends Model
             return 'https://placehold.co/400x560/0f172a/ffffff?text=Komik';
         }
 
+        // Jika sudah full URL, return langsung
         if (Str::startsWith($cover, ['http://', 'https://'])) {
             return $cover;
         }
@@ -62,17 +63,23 @@ class Comic extends Model
         // Pastikan path menggunakan forward slash
         $coverPath = str_replace('\\', '/', $cover);
         
+        // Bersihkan path dari karakter yang tidak perlu
+        $coverPath = ltrim($coverPath, '/');
+        
         // Cek di public/storage (lokasi yang benar untuk hosting)
         $publicPath = public_path('storage/'.$coverPath);
         if (file_exists($publicPath)) {
+            // Generate URL dengan asset() untuk memastikan menggunakan APP_URL yang benar
             return asset('storage/'.$coverPath);
         }
 
-        // Fallback: cek menggunakan Storage disk
-        if (Storage::disk('public')->exists($coverPath)) {
+        // Fallback: cek di storage/app/public (untuk backward compatibility)
+        $storagePath = storage_path('app/public/'.$coverPath);
+        if (file_exists($storagePath)) {
             return asset('storage/'.$coverPath);
         }
 
+        // Jika tidak ditemukan, return placeholder
         return 'https://placehold.co/400x560/0f172a/ffffff?text=Komik';
     }
 }

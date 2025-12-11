@@ -30,7 +30,18 @@ class ComicController extends Controller
         $data = $this->validateData($request);
 
         if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+            $file = $request->file('cover_image');
+            $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+            
+            // Pastikan folder exists
+            $coversPath = public_path('storage/covers');
+            if (!file_exists($coversPath)) {
+                mkdir($coversPath, 0755, true);
+            }
+            
+            // Simpan langsung ke public/storage/covers
+            $file->move($coversPath, $filename);
+            $data['cover_image'] = 'covers/'.$filename;
         }
 
         $data['slug'] = $this->generateUniqueSlug($data['title']);
@@ -52,10 +63,26 @@ class ComicController extends Controller
         $data = $this->validateData($request, $comic->id);
 
         if ($request->hasFile('cover_image')) {
+            // Hapus file lama jika ada
             if ($comic->cover_image) {
-                Storage::disk('public')->delete($comic->cover_image);
+                $oldPath = public_path('storage/'.$comic->cover_image);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
             }
-            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+            
+            $file = $request->file('cover_image');
+            $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+            
+            // Pastikan folder exists
+            $coversPath = public_path('storage/covers');
+            if (!file_exists($coversPath)) {
+                mkdir($coversPath, 0755, true);
+            }
+            
+            // Simpan langsung ke public/storage/covers
+            $file->move($coversPath, $filename);
+            $data['cover_image'] = 'covers/'.$filename;
         }
 
         $data['slug'] = $this->generateUniqueSlug($data['title'], $comic->id);
@@ -68,7 +95,10 @@ class ComicController extends Controller
     public function destroy(Comic $comic)
     {
         if ($comic->cover_image) {
-            Storage::disk('public')->delete($comic->cover_image);
+            $filePath = public_path('storage/'.$comic->cover_image);
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
         }
 
         $comic->delete();
